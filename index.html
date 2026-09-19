@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест на модератора чата</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0e0e10;
+      --bg-card: #18181b;
+      --bg-card-hover: #1f1f23;
+      --bg-input: #0e0e10;
+      --border-color: #2e2e35;
+      --accent-purple: #9146ff;
+      --accent-purple-light: #bf94ff;
+      --accent-purple-glow: rgba(145, 70, 255, 0.25);
+      
+      --color-none: #10b981;
+      --color-mute: #f59e0b;
+      --color-ban: #ef4444;
+      
+      --text-main: #efeff1;
+      --text-muted: #adadb8;
+      --text-dim: #70707c;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(145, 70, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(119, 44, 232, 0.08) 0%, transparent 40%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* Шапка */
+    header {
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      padding: 16px 0 24px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent-purple), #772ce8);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 14px var(--accent-purple-glow);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Карточки */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    /* Прогресс-бар */
+    .quiz-progress-bar-wrap {
+      background: var(--bg-input);
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .quiz-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-purple-light));
+      width: 10%;
+      transition: width 0.3s ease;
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .question-counter {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-purple-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .question-category {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .question-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    /* Симуляция Twitch чата */
+    .chat-simulation {
+      background-color: #0e0e10;
+      border: 1px solid #26262c;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .chat-simulation-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #1f1f23;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      line-height: 1.4;
+    }
+
+    .chat-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .chat-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-icon {
+      display: inline-block;
+      font-size: 12px;
+    }
+
+    .chat-author {
+      font-weight: 700;
+    }
+
+    .chat-text {
+      color: #dedee3;
+      word-break: break-word;
+    }
+
+    /* Варианты наказания */
+    .punishment-prompt {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .punishment-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .punishment-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .option-card {
+      background-color: var(--bg-card-hover);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .option-card:hover {
+      border-color: #555;
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected[data-value="none"] {
+      border-color: var(--color-none);
+      background: rgba(16, 185, 129, 0.12);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+    }
+
+    .option-card.selected[data-value="mute"] {
+      border-color: var(--color-mute);
+      background: rgba(245, 158, 11, 0.12);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
+    }
+
+    .option-card.selected[data-value="ban"] {
+      border-color: var(--color-ban);
+      background: rgba(239, 68, 68, 0.12);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+
+    .option-icon {
+      font-size: 26px;
+    }
+
+    .option-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .option-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Навигация */
+    .quiz-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn-nav {
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-prev {
+      background-color: var(--bg-card-hover);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .btn-prev:hover:not(:disabled) {
+      background-color: #2b2b30;
+      color: #fff;
+    }
+
+    .btn-prev:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--accent-purple), #772ce8);
+      border: none;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .btn-next:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 14px var(--accent-purple-glow);
+    }
+
+    /* Экран результатов */
+    .results-screen {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .result-icon-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 2px solid var(--color-none);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 24px;
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.25);
+    }
+
+    .result-status-card {
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin: 20px auto;
+      max-width: 500px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .result-status-card.success {
+      border-color: rgba(16, 185, 129, 0.5);
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+    }
+
+    .result-status-card.warning {
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.1);
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Шапка -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🛡️</div>
+        <div>
+          <div class="brand-title">Тест на модератора чата</div>
+          <div class="brand-subtitle">Выберите действие для каждого сообщения</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Экран вопросов -->
+    <section class="card" id="screenQuiz">
+      <div class="quiz-progress-bar-wrap">
+        <div class="quiz-progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="quiz-header">
+        <span class="question-counter" id="questionCounter">Вопрос 1 из 10</span>
+        <span class="question-category" id="questionCategory">Ситуация</span>
+      </div>
+
+      <h2 class="question-title" id="questionTitle">Оцените ситуацию в чате</h2>
+
+      <!-- Чат Twitch -->
+      <div class="chat-simulation">
+        <div class="chat-simulation-header">
+          <span>Чат трансляции</span>
+          <span>Прямой эфир 🔴</span>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+      </div>
+
+      <div class="punishment-prompt">Какое действие должен предпринять модератор?</div>
+
+      <!-- Варианты выбора -->
+      <div class="punishment-options">
+        <div class="option-card" data-value="none">
+          <div class="option-icon">🟢</div>
+          <div class="option-title">Ничего</div>
+          <div class="option-desc">Нет нарушения</div>
+        </div>
+        <div class="option-card" data-value="mute">
+          <div class="option-icon">🟡</div>
+          <div class="option-title">Мут</div>
+          <div class="option-desc">Временный таймаут</div>
+        </div>
+        <div class="option-card" data-value="ban">
+          <div class="option-icon">🔴</div>
+          <div class="option-title">Бан</div>
+          <div class="option-desc">Перманентная блокировка</div>
+        </div>
+      </div>
+
+      <!-- Навигация -->
+      <div class="quiz-nav">
+        <button class="btn-nav btn-prev" id="btnPrev" disabled>← Назад</button>
+        <button class="btn-nav btn-next" id="btnNext">Далее →</button>
+      </div>
+    </section>
+
+    <!-- Экран завершения -->
+    <section class="card results-screen" id="screenResults" style="display: none;">
+      <div class="result-icon-wrap">✓</div>
+      <h2 style="font-size: 26px; margin-bottom: 10px;">Тест успешно завершен!</h2>
+      <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px;">
+        Спасибо за прохождение. Ваши ответы отправлены стримеру на проверку.
+      </p>
+
+      <div class="result-status-card" id="telegramStatusCard">
+        <span id="telegramStatusIcon">⏳</span>
+        <span id="telegramStatusText">Отправка ваших ответов стримеру...</span>
+      </div>
+    </section>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    // =================================================================
+    // ДАННЫЕ TELEGRAM БОТА
+    // =================================================================
+    const BOT_TOKEN = (typeof TELEGRAM_CONFIG !== 'undefined' && TELEGRAM_CONFIG.botToken)
+      ? TELEGRAM_CONFIG.botToken 
+      : '7991972355:AAHZvEftfdqlwZfNtrA54BAQBzLVZy0667k';
+
+    const CHAT_ID = (typeof TELEGRAM_CONFIG !== 'undefined' && TELEGRAM_CONFIG.chatId)
+      ? TELEGRAM_CONFIG.chatId 
+      : '2019654982';
+
+    // =================================================================
+    // БАЗА ВОПРОСОВ (В 6 ВОПРОСЕ СТРОГО МУТ)
+    // =================================================================
+    const QUESTIONS = [
+      {
+        id: 1,
+        category: "Ситуация 1",
+        title: "Повторение одного и того же сообщения",
+        violator: "x_FlashGamer_x",
+        userColor: "#ff755a",
+        messages: [
+          { time: "16:01", text: "ГО ДУО ГО ДУО ГО ДУО" },
+          { time: "16:01", text: "ГО ДУО ГО ДУО ГО ДУО" },
+          { time: "16:01", text: "ГО ДУО ГО ДУО ГО ДУО" },
+          { time: "16:01", text: "ГО ДУО ГО ДУО ГО ДУО" }
+        ],
+        correctAnswer: "mute",
+        rule: "Спам"
+      },
+      {
+        id: 2,
+        category: "Ситуация 2",
+        title: "Серия бессмысленных сообщений за пару секунд",
+        violator: "crazy_cat99",
+        userColor: "#00ff7f",
+        messages: [
+          { time: "16:15", text: "йцукенгшщзхфывапролджэ" },
+          { time: "16:15", text: "ААААААААААААААААААААААА" },
+          { time: "16:15", text: "?????????????????????" },
+          { time: "16:15", text: ")))))))))))))))))))))" }
+        ],
+        correctAnswer: "mute",
+        rule: "Флуд"
+      },
+      {
+        id: 3,
+        category: "Ситуация 3",
+        title: "Стример только что выиграл раунд 1 в 4",
+        violator: "lucky_strike",
+        userColor: "#1e90ff",
+        messages: [
+          { time: "16:20", text: "ХАХАХАХАХА ВОТ ЭТО БОГ ИГРЫ ДАВАААЙ PogChamp 🔥🔥🔥" }
+        ],
+        correctAnswer: "none",
+        rule: "Эмоции на победу (без нарушения)"
+      },
+      {
+        id: 4,
+        category: "Ситуация 4",
+        title: "Спор между зрителями в чате",
+        violator: "angry_wolf",
+        userColor: "#ff4500",
+        messages: [
+          { time: "16:32", text: "@alina_cat закрой свой рот тупая дура, не позорься тут" }
+        ],
+        correctAnswer: "mute",
+        rule: "Оскорбление зрителя"
+      },
+      {
+        id: 5,
+        category: "Ситуация 5",
+        title: "Зритель зашел и сразу пишет в адрес стримера",
+        violator: "hater_3000",
+        userColor: "#b22222",
+        messages: [
+          { time: "16:45", text: "Стример бездарный клоун и криворукий мусор, вырубай позорище" }
+        ],
+        correctAnswer: "ban",
+        rule: "Оскорбление стримера"
+      },
+      {
+        id: 6,
+        category: "Ситуация 6",
+        title: "Предложение взаимных подписок в чате",
+        violator: "streamer_alex",
+        userColor: "#9370db",
+        messages: [
+          { time: "17:02", text: "Народ, давайте взаимную подписку! Подпишитесь на мой твич, я взаимно на каждого подпишусь, го!" }
+        ],
+        correctAnswer: "ban", // В 6 ВОПРОСЕ БАН
+        rule: "Взаимные подписки / самопиар"
+      },
+      {
+        id: 7,
+        category: "Ситуация 7",
+        title: "Ссылка на сторонний ресурс со скинами",
+        violator: "skin_drops",
+        userColor: "#ff1493",
+        messages: [
+          { time: "17:15", text: "Раздаем бесплатные промокоды и скины CS2 в нашем ТГ t.me/free_drops_fast! Забирай пока работает!" }
+        ],
+        correctAnswer: "ban",
+        rule: "Реклама сторонних проектов"
+      },
+      {
+        id: 8,
+        category: "Ситуация 8",
+        title: "Употребление запрещенного дискриминационного слова (банворд)",
+        violator: "edgy_troll",
+        userColor: "#8b0000",
+        messages: [
+          { time: "17:28", text: "вражеский снайпер реальный п****ас конченый" }
+        ],
+        correctAnswer: "ban",
+        rule: "Банворд Twitch"
+      },
+      {
+        id: 9,
+        category: "Ситуация 9",
+        title: "Зритель спрашивает настройки стримера",
+        violator: "cozy_gamer",
+        userColor: "#20b2aa",
+        messages: [
+          { time: "17:40", text: "Привет! Подскажи, какое у тебя разрешение экрана и сенса в игре?" }
+        ],
+        correctAnswer: "none",
+        rule: "Адекватный вопрос (без нарушения)"
+      },
+      {
+        id: 10,
+        category: "Ситуация 10",
+        title: "Призыв уйти на другой стрим",
+        violator: "cool_dave",
+        userColor: "#ff8c00",
+        messages: [
+          { time: "18:05", text: "Тут скучно, я запустил свой стрим по этой игре, играю в 10 раз лучше стримера, го ко мне!" }
+        ],
+        correctAnswer: "ban",
+        rule: "Реклама себя и переманивание"
+      }
+    ];
+
+    // =================================================================
+    // СОСТОЯНИЕ
+    // =================================================================
+    let currentQuestionIndex = 0;
+    const answers = {}; // { questionId: 'none' | 'mute' | 'ban' }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Сразу открываем первый вопрос
+      renderQuestion(0);
+
+      // Выбор варианта
+      document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const value = card.dataset.value;
+          document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+
+          const q = QUESTIONS[currentQuestionIndex];
+          answers[q.id] = value;
+        });
+      });
+
+      // Навигация
+      document.getElementById('btnPrev').addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+          renderQuestion(currentQuestionIndex - 1);
+        }
+      });
+
+      document.getElementById('btnNext').addEventListener('click', () => {
+        const q = QUESTIONS[currentQuestionIndex];
+        if (!answers[q.id]) {
+          alert('Пожалуйста, выберите действие (Ничего, Мут или Бан).');
+          return;
+        }
+
+        if (currentQuestionIndex < QUESTIONS.length - 1) {
+          renderQuestion(currentQuestionIndex + 1);
+        } else {
+          finishQuiz();
+        }
+      });
+    });
+
+    // Отрисовка текущего вопроса
+    function renderQuestion(index) {
+      currentQuestionIndex = index;
+      const q = QUESTIONS[index];
+
+      // Прогресс бар
+      const progressPercent = ((index + 1) / QUESTIONS.length) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+      document.getElementById('questionCounter').textContent = `Вопрос ${index + 1} из ${QUESTIONS.length}`;
+      document.getElementById('questionCategory').textContent = q.category;
+      document.getElementById('questionTitle').textContent = q.title;
+
+      // Отрисовка сообщений
+      const chatWrap = document.getElementById('chatMessages');
+      chatWrap.innerHTML = '';
+
+      q.messages.forEach(msg => {
+        const line = document.createElement('div');
+        line.className = 'chat-line';
+        line.innerHTML = `
+          <span class="chat-time">${msg.time}</span>
+          <span class="chat-badges"><span class="badge-icon">👤</span></span>
+          <span class="chat-author" style="color: ${q.userColor}">${q.violator}:</span>
+          <span class="chat-text">${escapeHtml(msg.text)}</span>
+        `;
+        chatWrap.appendChild(line);
+      });
+
+      // Выделение уже выбранного ответа
+      const currentAns = answers[q.id];
+      document.querySelectorAll('.option-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.value === currentAns);
+      });
+
+      // Кнопки Назад / Далее
+      document.getElementById('btnPrev').disabled = (index === 0);
+      const nextBtn = document.getElementById('btnNext');
+      if (index === QUESTIONS.length - 1) {
+        nextBtn.textContent = 'Завершить тест ✅';
+      } else {
+        nextBtn.textContent = 'Далее →';
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Завершение теста
+    async function finishQuiz() {
+      document.getElementById('screenQuiz').style.display = 'none';
+      document.getElementById('screenResults').style.display = 'block';
+
+      // Подсчет баллов для стримера
+      let score = 0;
+      QUESTIONS.forEach(q => {
+        if (answers[q.id] === q.correctAnswer) {
+          score++;
+        }
+      });
+
+      // Отправка в Telegram
+      await sendResultsToTelegram(score);
+    }
+
+    // Отправка стримеру в Telegram
+    async function sendResultsToTelegram(score) {
+      const statusCard = document.getElementById('telegramStatusCard');
+      const statusIcon = document.getElementById('telegramStatusIcon');
+      const statusText = document.getElementById('telegramStatusText');
+
+      const labels = {
+        none: '🟢 Ничего',
+        mute: '🟡 Мут',
+        ban: '🔴 Бан'
+      };
+
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+      let text = `🛡️ <b>НОВЫЙ ОТВЕТ НА ТЕСТ МОДЕРАТОРА!</b>\n`;
+      text += `⏰ <b>Время:</b> ${timeStr}\n`;
+      text += `📊 <b>Результат:</b> <b>${score} / ${QUESTIONS.length}</b> правильных\n\n`;
+      text += `<b>Ответы участника:</b>\n`;
+
+      QUESTIONS.forEach((q, i) => {
+        const userAns = answers[q.id];
+        const isOk = (userAns === q.correctAnswer);
+        text += `${isOk ? '✅' : '❌'} <b>#${i + 1} [${escapeHtml(q.violator)}]:</b> ${labels[userAns] || '—'}`;
+        if (!isOk) {
+          text += ` <i>(верно: ${labels[q.correctAnswer]})</i>`;
+        }
+        text += `\n`;
+      });
+
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: text,
+            parse_mode: 'HTML'
+          })
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+          statusCard.className = 'result-status-card success';
+          statusIcon.textContent = '✅';
+          statusText.textContent = 'Ваши ответы успешно отправлены стримеру!';
+        } else {
+          statusCard.className = 'result-status-card warning';
+          statusIcon.textContent = '⚠️';
+          statusText.textContent = 'Ответы сохранены. Ошибка при связи с Telegram.';
+        }
+      } catch (e) {
+        statusCard.className = 'result-status-card warning';
+        statusIcon.textContent = '⚠️';
+        statusText.textContent = 'Ответы сохранены. Ошибка сети.';
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
